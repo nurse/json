@@ -23,6 +23,10 @@ class UndocumentedTestTask < Rake::TestTask
   def desc(*) end
 end
 
+def skip_sdoc(src)
+  src.gsub(/^.*sdoc.*/) { |s| s + ' if RUBY_VERSION > "1.8.6"' }
+end
+
 MAKE   = ENV['MAKE']   || %w[gmake make].find { |c| system(c, '-v') }
 BUNDLE = ENV['BUNDLE'] || %w[bundle].find { |c| system(c, '-v') }
 PKG_NAME          = 'json'
@@ -84,7 +88,7 @@ if defined?(Gem) and defined?(Gem::PackageTask)
 
     s.require_path = 'lib'
     s.add_development_dependency 'permutation'
-    s.add_development_dependency 'sdoc'
+    s.add_development_dependency 'sdoc', '~> 0.3.16'
     s.add_development_dependency 'rake', '~>0.9.2'
 
     s.extra_rdoc_files << 'README.rdoc'
@@ -101,7 +105,7 @@ if defined?(Gem) and defined?(Gem::PackageTask)
   desc 'Creates a json_pure.gemspec file'
   task :gemspec_pure => :version do
     File.open('json_pure.gemspec', 'w') do |gemspec|
-      gemspec.write spec_pure.to_ruby
+      gemspec.write skip_sdoc(spec_pure.to_ruby)
     end
   end
 
@@ -122,7 +126,7 @@ if defined?(Gem) and defined?(Gem::PackageTask)
 
     s.require_path = 'lib'
     s.add_development_dependency 'permutation'
-    s.add_development_dependency 'sdoc'
+    s.add_development_dependency 'sdoc', '~> 0.3.16'
 
     s.extra_rdoc_files << 'README.rdoc'
     s.rdoc_options <<
@@ -138,7 +142,7 @@ if defined?(Gem) and defined?(Gem::PackageTask)
   desc 'Creates a json.gemspec file'
   task :gemspec_ext => :version do
     File.open('json.gemspec', 'w') do |gemspec|
-      gemspec.write spec_ext.to_ruby
+      gemspec.write skip_sdoc(spec_ext.to_ruby)
     end
   end
 
@@ -196,11 +200,18 @@ end
 if defined?(RUBY_ENGINE) and RUBY_ENGINE == 'jruby'
   if ENV.key?('JAVA_HOME')
     warn " *** JAVA_HOME was set to #{ENV['JAVA_HOME'].inspect}"
-  else File.directory?(local_java = '/usr/local/java/jdk')
+  elsif File.directory?(local_java = '/usr/local/java/jdk') ||
+    File.directory?(local_java = '/usr/lib/jvm/java-6-openjdk')
+  then
     ENV['JAVA_HOME'] = local_java
+  end
+  if ENV['JAVA_HOME']
     warn " *** JAVA_HOME is set to #{ENV['JAVA_HOME'].inspect}"
     ENV['PATH'] = ENV['PATH'].split(/:/).unshift(java_path = "#{ENV['JAVA_HOME']}/bin") * ':'
     warn " *** java binaries are assumed to be in #{java_path.inspect}"
+  else
+    warn " *** JAVA_HOME was not set or could not be guessed!"
+    exit 1
   end
 
   file JAVA_PARSER_SRC => JAVA_RAGEL_PATH do
@@ -341,6 +352,11 @@ else
   desc "Delete the ragel generated C source"
   task :ragel_clean do
     rm_rf EXT_PARSER_SRC
+  end
+
+  desc "Update the tags file"
+  task :tags do
+    system 'ctags', *Dir['**/*.{rb,c,h,java}']
   end
 
   file EXT_PARSER_SRC => RAGEL_PATH do
