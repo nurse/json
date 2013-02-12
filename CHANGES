@@ -1,3 +1,21 @@
+2013-02-04 (1.7.7)
+  * Security fix for JSON create_additions default value and
+    JSON::GenericObject. It should not be possible to create additions unless
+    explicitely requested by setting the create_additions argument to true or
+    using the JSON.load/dump interface. If JSON::GenericObject is supposed to
+    be automatically deserialised, this has to be explicitely enabled by
+    setting
+      JSON::GenericObject.json_createble = true
+    as well.
+  * Remove useless assert in fbuffer implementation.
+  * Apply patch attached to https://github.com/flori/json/issues#issue/155
+    provided by John Shahid <jvshahid@gmail.com>, Thx!
+  * Add license information to rubygems spec data, reported by Jordi Massaguer Pla <jmassaguerpla@suse.de>.
+  * Improve documentation, thx to Zachary Scott <zachary@zacharyscott.net>.
+2012-11-29 (1.7.6)
+  * Add GeneratorState#merge alias for JRuby, fix state accessor methods. Thx to
+   jvshahid@github.
+  * Increase hash likeness of state objects.
 2012-08-17 (1.7.5)
   * Fix compilation of extension on older rubies.
 2012-07-26 (1.7.4)

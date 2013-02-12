@@ -58,7 +58,7 @@ public class Parser extends RubyObject {
     private RubyClass arrayClass;
     private RubyHash match_string;
 
-    private static final int DEFAULT_MAX_NESTING = 19;
+    private static final int DEFAULT_MAX_NESTING = 100;
 
     private static final ByteList JSON_MINUS_INFINITY = new ByteList(ByteList.plain("-Infinity"));
     // constant names in the JSON module containing those values
@@ -113,7 +113,7 @@ public class Parser extends RubyObject {
      * <dt><code>:max_nesting</code>
      * <dd>The maximum depth of nesting allowed in the parsed data
      * structures. Disable depth checking with <code>:max_nesting => false|nil|0</code>,
-     * it defaults to 19.
+     * it defaults to 100.
      *
      * <dt><code>:allow_nan</code>
      * <dd>If set to <code>true</code>, allow <code>NaN</code>,
@@ -166,7 +166,7 @@ public class Parser extends RubyObject {
         this.symbolizeNames  = opts.getBool("symbolize_names", false);
         this.quirksMode      = opts.getBool("quirks_mode", false);
         this.createId        = opts.getString("create_id", getCreateId(context));
-        this.createAdditions = opts.getBool("create_additions", true);
+        this.createAdditions = opts.getBool("create_additions", false);
         this.objectClass     = opts.getClass("object_class", runtime.getHash());
         this.arrayClass      = opts.getClass("array_class", runtime.getArray());
         this.match_string    = opts.getHash("match_string");
